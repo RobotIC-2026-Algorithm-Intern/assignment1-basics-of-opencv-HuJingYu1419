@@ -87,7 +87,7 @@ class BallDetector:
         self.roi = None
     
     
-    def process_frame(self, frame, display_result=True, pixel_threshold=None):
+    def process_frame(self, frame, display_result=False, pixel_threshold=None):
         """
         处理单帧图像，检测球的状态
         
@@ -98,7 +98,7 @@ class BallDetector:
             
         返回:
             result: 检测结果字典
-            display_frame: 处理后的图像（如果display_result=True）
+            display_result: 处理后的图像可视化
         """
         # 使用默认阈值或参数阈值
         if pixel_threshold is None:
@@ -110,8 +110,9 @@ class BallDetector:
         # 转换为HSV颜色空间
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
-        # 检测每种颜色的像素数量
-        colors = ["red", "blue", "purple"]
+        # 自动获取配置文件中定义的所有颜色（关键修改）
+        colors = self.color_range.get_color_names()  # 替换原来的手动设置
+        
         color_pixel_counts = {}
         color_masks = {}
         
@@ -141,8 +142,9 @@ class BallDetector:
                 max_pixels = count
                 detected_color = color
         
+        # 动态生成状态文本（关键修改）
         if detected_color:
-            ball_state = {"red": "Red Ball", "blue": "Blue Ball", "purple": "Purple Ball"}[detected_color]
+            ball_state = f"{detected_color.capitalize()} Ball"  # 自动生成状态文本
         
         # 准备返回结果
         result = {
@@ -173,18 +175,24 @@ class BallDetector:
                 # 将处理后的图像叠加到可视化中
                 mask_visualization = masked_frame
                 
-                # 显示文本颜色根据检测到的球颜色变化
-                text_color = {
-                    "red": (0, 0, 255),     # 红色 - BGR
-                    "blue": (255, 0, 0),    # 蓝色 - BGR  
-                    "purple": (255, 0, 255) # 紫色 - BGR
-                }[detected_color]
+                # 动态设置文本颜色（关键修改）
+                # 为常见颜色预设颜色，其他颜色使用白色
+                color_mapping = {
+                    "red": (0, 0, 255),
+                    "blue": (255, 0, 0),
+                    "green": (0, 255, 0),
+                    "yellow": (0, 255, 255),
+                    "purple": (255, 0, 255),
+                    "orange": (0, 165, 255),
+                    "pink": (203, 192, 255)
+                }
+                text_color = color_mapping.get(detected_color, (255, 255, 255))
             else:
                 # 未检测到球，显示原图但较暗
                 mask_visualization = cv2.addWeighted(frame, 0.3, np.zeros_like(frame), 0.7, 0)
-                text_color = (255, 255, 255)  # 红色文字表示未检测到
+                text_color = (255, 255, 255)  # 白色文字表示未检测到
             
-            # 在左上角显示检测结果（只显示一行）
+            # 在左上角显示检测结果
             text = ball_state
             
             # 添加背景框使文字更清晰
