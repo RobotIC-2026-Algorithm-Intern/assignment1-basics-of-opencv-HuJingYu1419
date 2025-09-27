@@ -1,6 +1,6 @@
 import os
 current_path = os.path.abspath(os.path.dirname(__file__))
-filepath=os.path.join(current_path, '视频文件名字.avi')#放在该py文件同一目录下
+filepath=os.path.join(current_path, 'output.avi')#放在该py文件同一目录下
 '''
     这是一个逐帧掩膜的调参分析的程序
     请在上方区域输入视频的文件名
