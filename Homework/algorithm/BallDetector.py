@@ -87,7 +87,7 @@ class BallDetector:
         self.roi = None
     
     
-    def process_frame(self, frame, display_result=False, pixel_threshold=None):
+    def process_frame(self, frame, display_result=True, pixel_threshold=None):
         """
         处理单帧图像，检测球的状态
         
@@ -98,7 +98,7 @@ class BallDetector:
             
         返回:
             result: 检测结果字典
-            display_result: 处理后的图像可视化
+            display_result: 是否生成处理的图像（否的话将只提供检测结果信息不提供图片）
         """
         # 使用默认阈值或参数阈值
         if pixel_threshold is None:
@@ -110,7 +110,7 @@ class BallDetector:
         # 转换为HSV颜色空间
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
-        # 自动获取配置文件中定义的所有颜色（关键修改）
+        # 自动获取配置文件中定义的所有颜色
         colors = self.color_range.get_color_names()  # 替换原来的手动设置
         
         color_pixel_counts = {}
@@ -138,11 +138,11 @@ class BallDetector:
         max_pixels = 0
         
         for color, count in color_pixel_counts.items():
-            if count > pixel_threshold and count > max_pixels:
+            if count > pixel_threshold and count > max_pixels: #对比阈值和其他颜色的像素数
                 max_pixels = count
                 detected_color = color
         
-        # 动态生成状态文本（关键修改）
+        # 动态生成状态文本）
         if detected_color:
             ball_state = f"{detected_color.capitalize()} Ball"  # 自动生成状态文本
         
@@ -154,7 +154,7 @@ class BallDetector:
             "max_pixels": max_pixels
         }
         
-        # 如果需要显示结果
+        # 如果需要显示图像结果
         if display_result:
             # 创建掩膜可视化图像
             mask_visualization = np.zeros_like(frame)
